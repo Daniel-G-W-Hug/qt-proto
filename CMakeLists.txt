@@ -70,8 +70,8 @@ if(CMAKE_BUILD_TYPE EQUAL "Debug")
 endif()
 
 # However, the file(GLOB...) allows for wildcard additions:
-set(SOURCES src/main.cpp src/w_main.cpp)
-set(HEADERS include/w_main.hpp)
+set(SOURCES src/main.cpp src/w_main.cpp src/w_active_pt.cpp)
+set(HEADERS include/w_main.hpp include/w_active_pt.hpp)
 
 set(EXEC_NAME ${PROJECT_NAME})
 add_executable(${EXEC_NAME} ${SOURCES} ${HEADERS})

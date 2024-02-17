@@ -2,18 +2,14 @@
 
 #include <QWidget>
 
-class w_main : public QWidget {
+class w_active_pt : public QWidget {
     Q_OBJECT
 
   public:
 
-    w_main(QWidget* parent = nullptr);
+    w_active_pt(QWidget* parent = nullptr);
 
   protected:
 
     void paintEvent(QPaintEvent* event) override;
-
-  private:
-
-    QWidget* w_child;
 };
