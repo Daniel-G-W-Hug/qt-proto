@@ -1,6 +1,7 @@
-#include "w_main.hpp"
+#include "w_gview.hpp"
 
 #include <QApplication>
+#include <QMainWindow>
 
 #include <iostream>
 
@@ -11,10 +12,13 @@ int main(int argc, char* argv[])
     try {
         QApplication app(argc, argv);
 
-        w_main window;
+        w_gview* gview = new w_gview;
 
-        window.setWindowTitle("qt Test");
-        window.show();
+        QMainWindow mainWindow;
+
+        mainWindow.setWindowTitle("tr(graphicsview test)");
+        mainWindow.setCentralWidget(gview);
+        mainWindow.show();
 
         return app.exec();
     }
