@@ -1,23 +1,103 @@
 #include "w_active_pt.hpp"
 
-#include <QPainter>
+static constexpr float RADIUS = 5;
 
-w_active_pt::w_active_pt(QWidget* parent) : QWidget(parent) { resize(10, 10); }
+active_pt::active_pt(QPointF const& pos, QGraphicsItem* parent) :
+    QGraphicsItem(parent), m_pos{pos}
+{
+    setPos(pos.x(), pos.y()); // store scene position
+    setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable);
+    setAcceptHoverEvents(true);
+}
 
-void w_active_pt::paintEvent(QPaintEvent*)
+void active_pt::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+                      QWidget* widget)
 {
 
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    // painter.translate(width() / 2, height() / 2);
-    // painter.scale(side / 200.0, side / 200.0);
+    QColor const col_blue = QColor(0, 0, 255, 127);
+    QColor const col_green = QColor(0, 255, 0, 127);
+    QColor const col_red = QColor(255, 0, 0, 127);
 
-    painter.setPen(Qt::black);
-    painter.setBrush(Qt::black);
-    painter.drawEllipse(100, 100, 10, 10);
+    // draw in item coordinate system
+    painter->save();
 
-    // painter.save();
-    // painter.rotate(30.0 * ((time.hour() + time.minute() / 60.0)));
-    // painter.drawConvexPolygon(hourHand, 4);
-    // painter.restore();
+    painter->setPen(col_blue);
+    painter->setBrush(col_blue); // selectable: blue (default)
+
+    if (m_mouse_hover && !m_mouse_pressed) {
+        painter->setPen(col_green);
+        painter->setBrush(col_green); // hover: green
+    }
+    if (m_mouse_hover && m_mouse_pressed) {
+        painter->setPen(col_red);
+        painter->setBrush(col_red); // selected: red
+    }
+
+    painter->drawEllipse(QRectF(QPointF(-RADIUS, -RADIUS), QPointF(RADIUS, RADIUS)));
+
+    painter->restore();
+}
+
+QRectF active_pt::boundingRect() const
+{
+    return QRectF(QPointF(-RADIUS, -RADIUS), QPointF(RADIUS, RADIUS));
+}
+
+void active_pt::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+    Q_UNUSED(event)
+
+    qDebug() << "active_pt::hoverEnterEvent.";
+    // qDebug() << "mouse(" << event->pos().x << "," << event->pos().y << ").\n";
+
+    m_mouse_hover = true;
+    update();
+}
+
+void active_pt::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+    Q_UNUSED(event)
+
+    qDebug() << "active_pt::hoverLeaveEvent.";
+    // qDebug() << "mouse(" << event->pos().x << "," << event->pos().y << ").\n";
+
+    m_mouse_hover = false;
+    update();
+}
+
+void active_pt::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    qDebug() << "active_pt::mousePressEvent.";
+
+    m_mouse_pressed = true;
+    update();
+
+    QGraphicsItem::mousePressEvent(event); // call default implementation
+}
+
+void active_pt::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    qDebug() << "active_pt::mouseReleaseEvent.";
+    qDebug() << "m_pos:" << m_pos;
+
+    m_mouse_pressed = false;
+    update();
+
+    QGraphicsItem::mouseReleaseEvent(event); // call default implementation
+}
+
+void active_pt::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    qDebug() << "active_pt::mouseMoveEvent.";
+    // qDebug() << "pos():" << event->pos();
+    // qDebug() << "scenePos():" << event->scenePos();
+
+    // update internally stored scene position of the item
+    // corrected by gripping distance to the center pos
+    QPointF new_pos = event->scenePos() - event->pos();
+    if (m_pos != new_pos) {
+        m_pos = new_pos;
+    }
+
+    QGraphicsItem::mouseMoveEvent(event); // move the item normally
 }

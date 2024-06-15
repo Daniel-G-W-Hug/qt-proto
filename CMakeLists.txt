@@ -70,11 +70,10 @@ if(CMAKE_BUILD_TYPE EQUAL "Debug")
 endif()
 
 # However, the file(GLOB...) allows for wildcard additions:
-set(SOURCES src/main.cpp src/w_main.cpp src/w_active_pt.cpp)
-set(HEADERS include/w_main.hpp include/w_active_pt.hpp)
+set(SOURCES src/main.cpp src/mainwindow.cpp src/w_myview.cpp src/w_active_pt.cpp)
 
 set(EXEC_NAME ${PROJECT_NAME})
-add_executable(${EXEC_NAME} ${SOURCES} ${HEADERS})
+add_executable(${EXEC_NAME} ${SOURCES} )
 
 # target link libraries have to be added AFTER add_executable or add_library!
 target_include_directories(${EXEC_NAME} PRIVATE include)
