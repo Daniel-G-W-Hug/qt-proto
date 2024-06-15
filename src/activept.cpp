@@ -1,4 +1,5 @@
 #include "activept.hpp"
+#include "edge.hpp"
 #include "w_gview.hpp"
 
 #include <QGraphicsScene>
@@ -16,11 +17,28 @@ activePt::activePt(w_gview* gview) : gview{gview}
     setZValue(-1);
 }
 
-activePt::addEdge(edge* edge)
+void activePt::addEdge(edge* edge)
 {
     m_edge = edge;
     m_edge->adjust();
 }
+
+void activePt::calculate()
+{
+    if (!scene() || scene()->mouseGrabberItem() == this) {
+        newPos = pos();
+        return;
+    }
+}
+
+bool activePt::advance()
+{
+    if (newPos == pos()) return false;
+
+    setPos(newPos);
+    return true;
+}
+
 
 QRectF activePt::boundingRect() const
 {
@@ -62,7 +80,7 @@ QVariant activePt::itemChange(GraphicsItemChange change, const QVariant& value)
 {
     switch (change) {
         case ItemPositionHasChanged:
-            vec->adjust();      // inform linked vector to update itself
+            m_edge->adjust();   // inform linked vector to update itself
             gview->itemMoved(); // inform graphicsview of required update
             break;
         default:

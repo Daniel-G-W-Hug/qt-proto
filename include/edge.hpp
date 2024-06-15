@@ -4,16 +4,15 @@
 
 class activePt;
 
-class edge ::public QGraphicsItem
-{
+class edge : public QGraphicsItem {
   public:
 
-    edge(activePt * src, activePt * dst);
+    edge(activePt* src, activePt* dst);
 
     activePt* srcPt() const;
     activePt* dstPt() const;
 
-    adjust();
+    void adjust();
 
     enum { Type = UserType + 2 };
     int type() const override { return Type; }
@@ -21,7 +20,7 @@ class edge ::public QGraphicsItem
   protected:
 
     QRectF boundingRect() const override;
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem* option,
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
 
   private:
@@ -33,4 +32,4 @@ class edge ::public QGraphicsItem
     QPointF m_dstPt;
 
     qreal m_arrowSize = 10;
-}
+};

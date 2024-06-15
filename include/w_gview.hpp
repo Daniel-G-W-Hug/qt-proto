@@ -1,5 +1,8 @@
 #pragma once
 
+#include "activept.hpp"
+#include "edge.hpp"
+
 #include <QGraphicsView>
 
 class w_gview : public QGraphicsView {
@@ -18,6 +21,8 @@ class w_gview : public QGraphicsView {
   protected:
 
     void keyPressEvent(QKeyEvent* event) override;
+    void timerEvent(QTimerEvent* event) override;
+
     // void wheelEvent(QWheelEvent* event) override;
 
     // void paintEvent(QPaintEvent* event) override;
@@ -25,8 +30,8 @@ class w_gview : public QGraphicsView {
 
     void scaleView(qreal scaleFactor);
 
-    // private:
-    //
-    // stuff to be added later
-    //
+  private:
+
+    int timerId = 0;
+    activePt* ap;
 };

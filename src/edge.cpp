@@ -6,15 +6,15 @@
 edge::edge(activePt* src, activePt* dst) : m_src{src}, m_dst{dst}
 {
     setAcceptedMouseButtons(Qt::NoButton);
-    m_src->addVec2d(this);
-    m_dst->addVec2d(this);
+    m_src->addEdge(this);
+    m_dst->addEdge(this);
     adjust();
 }
 
 activePt* edge::srcPt() const { return m_src; }
 activePt* edge::dstPt() const { return m_dst; }
 
-edge::adjust()
+void edge::adjust()
 {
     if (!m_src || !m_dst) return;
 
@@ -50,14 +50,14 @@ void edge::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
     // Draw the arrows
     double angle = std::atan2(-line.dy(), line.dx());
 
-    QPointF sourceArrowP1 = m_srcPt + QPointF(sin(angle + M_PI / 3) * arrowSize,
-                                              cos(angle + M_PI / 3) * arrowSize);
-    QPointF sourceArrowP2 = m_srcPt + QPointF(sin(angle + M_PI - M_PI / 3) * arrowSize,
-                                              cos(angle + M_PI - M_PI / 3) * arrowSize);
-    QPointF destArrowP1 = m_dstPt + QPointF(sin(angle - M_PI / 3) * arrowSize,
-                                            cos(angle - M_PI / 3) * arrowSize);
-    QPointF destArrowP2 = m_dstPt + QPointF(sin(angle - M_PI + M_PI / 3) * arrowSize,
-                                            cos(angle - M_PI + M_PI / 3) * arrowSize);
+    QPointF sourceArrowP1 = m_srcPt + QPointF(sin(angle + M_PI / 3) * m_arrowSize,
+                                              cos(angle + M_PI / 3) * m_arrowSize);
+    QPointF sourceArrowP2 = m_srcPt + QPointF(sin(angle + M_PI - M_PI / 3) * m_arrowSize,
+                                              cos(angle + M_PI - M_PI / 3) * m_arrowSize);
+    QPointF destArrowP1 = m_dstPt + QPointF(sin(angle - M_PI / 3) * m_arrowSize,
+                                            cos(angle - M_PI / 3) * m_arrowSize);
+    QPointF destArrowP2 = m_dstPt + QPointF(sin(angle - M_PI + M_PI / 3) * m_arrowSize,
+                                            cos(angle - M_PI + M_PI / 3) * m_arrowSize);
 
     painter->setBrush(Qt::black);
     painter->drawPolygon(QPolygonF() << line.p1() << sourceArrowP1 << sourceArrowP2);
