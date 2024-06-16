@@ -1,6 +1,6 @@
 #include "mainwindow.hpp"
 #include "w_active_pt.hpp"
-#include "w_myview.hpp"
+#include "w_active_vec.hpp"
 
 #include <QPainter>
 #include <QPointF>
@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
     view = new QGraphicsView(scene);
     view->setRenderHint(QPainter::Antialiasing);
+    view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
     auto layout = new QVBoxLayout;
     layout->addWidget(view);
@@ -26,11 +27,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
     setCentralWidget(widget);
 
-    myView* it = new myView(100, 100, 100, 20);
-    scene->addItem(it);
-
     active_pt* pt = new active_pt(QPointF(120, 100));
     scene->addItem(pt);
 
     scene->addLine(0, 0, 120, 100);
+
+    active_vec* v = new active_vec(QPointF(130, 120), QPointF(270, 160));
+    scene->addItem(v);
 }
