@@ -1,6 +1,6 @@
 #include "w_active_vec.hpp"
 
-static constexpr float MARGIN = 5.0;
+static constexpr float MARGIN = 12.0;
 static constexpr float ARROWSIZE = 12.0;
 
 active_vec::active_vec(QPointF const& beg, QPointF const& end, QGraphicsItem* parent) :
@@ -47,12 +47,15 @@ void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
     qreal dx = (m_end - m_beg).x();
     qreal angle = std::atan2(-dy, dx);
 
-    // draw a thicker line for the vector body
-    painter->drawLine(mapFromScene(m_beg),
-                      mapFromScene(m_end) -
-                          QPointF(sin(angle + M_PI / 2) * 0.6 * ARROWSIZE,
-                                  cos(angle + M_PI / 2) * 0.6 * ARROWSIZE));
+    QPainterPath arrowLine;
+    arrowLine.moveTo(mapFromScene(m_beg));
+    arrowLine.lineTo(mapFromScene(m_end) -
+                     QPointF(sin(angle + M_PI / 2) * 0.6 * ARROWSIZE,
+                             cos(angle + M_PI / 2) * 0.6 * ARROWSIZE));
 
+    QPen pen = painter->pen();
+    pen.setWidth(2);
+    painter->drawPath(arrowLine);
 
     QPainterPath arrowHead;
     arrowHead.moveTo(mapFromScene(m_end));
@@ -67,11 +70,14 @@ void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
     arrowHead.closeSubpath();
 
     // from here on we want to draw with a small pen to get a pointy vector head
-    QPen pen1 = painter->pen();
-    pen1.setWidth(1);
-    painter->setPen(pen1);
-
+    pen.setWidth(1);
+    painter->setPen(pen);
     painter->drawPath(arrowHead);
+
+    // // draw shape (optional for testing)
+    // painter->setPen(col_yel);
+    // painter->setBrush(col_yel);
+    // painter->drawPath(shape());
 
     painter->restore();
 }
@@ -80,6 +86,30 @@ QRectF active_vec::boundingRect() const
 {
     // give bounding box in item coordinate system
     return QRectF(mapFromScene(m_beg), mapFromScene(m_end)).normalized();
+}
+
+QPainterPath active_vec::shape() const
+{
+
+    qreal dy = (m_end - m_beg).y();
+    qreal dx = (m_end - m_beg).x();
+    qreal angle = std::atan2(-dy, dx);
+
+    QPainterPath path;
+    path.moveTo(mapFromScene(m_beg) -
+                QPointF(sin(angle + M_PI / 2) * MARGIN, cos(angle + M_PI / 2) * MARGIN) -
+                QPointF(-cos(angle + M_PI / 2) * MARGIN, sin(angle + M_PI / 2) * MARGIN));
+    path.lineTo(mapFromScene(m_end) +
+                QPointF(sin(angle + M_PI / 2) * MARGIN, cos(angle + M_PI / 2) * MARGIN) -
+                QPointF(-cos(angle + M_PI / 2) * MARGIN, sin(angle + M_PI / 2) * MARGIN));
+    path.lineTo(mapFromScene(m_end) +
+                QPointF(sin(angle + M_PI / 2) * MARGIN, cos(angle + M_PI / 2) * MARGIN) +
+                QPointF(-cos(angle + M_PI / 2) * MARGIN, sin(angle + M_PI / 2) * MARGIN));
+    path.lineTo(mapFromScene(m_beg) -
+                QPointF(sin(angle + M_PI / 2) * MARGIN, cos(angle + M_PI / 2) * MARGIN) +
+                QPointF(-cos(angle + M_PI / 2) * MARGIN, sin(angle + M_PI / 2) * MARGIN));
+    path.closeSubpath();
+    return path;
 }
 
 void active_vec::setScenePos_beg(QPointF const& pos)

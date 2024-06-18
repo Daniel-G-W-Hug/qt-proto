@@ -16,6 +16,7 @@ class active_vec : public QGraphicsItem {
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     [[nodiscard]] QRectF boundingRect() const override;
+    QPainterPath shape() const override;
 
     void setScenePos_beg(QPointF const& pos);
     void setScenePos_end(QPointF const& pos);

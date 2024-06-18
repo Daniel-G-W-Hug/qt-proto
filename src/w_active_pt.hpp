@@ -17,6 +17,7 @@ class active_pt : public QGraphicsItem {
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     QRectF boundingRect() const override;
+    QPainterPath shape() const override;
 
     void setScenePos(QPointF const& pos);
     QPointF scenePos();

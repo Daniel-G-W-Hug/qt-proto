@@ -49,6 +49,13 @@ QRectF active_pt::boundingRect() const
     return QRectF(QPointF(-RADIUS, -RADIUS), QPointF(RADIUS, RADIUS));
 }
 
+QPainterPath active_pt::shape() const
+{
+    QPainterPath path;
+    path.addEllipse(boundingRect());
+    return path;
+}
+
 void active_pt::setScenePos(QPointF const& pos)
 {
     prepareGeometryChange();
