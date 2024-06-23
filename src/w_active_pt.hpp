@@ -5,14 +5,13 @@
 #include <QPainter>
 #include <QWidget>
 
-class active_pt : public QGraphicsItem {
+class active_pt : public QObject, public QGraphicsItem {
+
+    Q_OBJECT
 
   public:
 
-    enum class parent_type { none, pt, vec_beg, vec_end };
-
-    active_pt(QPointF const& pos, parent_type parent_t = active_pt::parent_type::none,
-              QGraphicsItem* parent = nullptr);
+    active_pt(QPointF const& pos, QGraphicsItem* parent = nullptr);
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
@@ -22,8 +21,9 @@ class active_pt : public QGraphicsItem {
     void setScenePos(QPointF const& pos);
     QPointF scenePos();
 
-    bool has_parent() { return m_p_type != active_pt::parent_type::none; }
-    void update_parent_geometry();
+  signals:
+
+    void scenePosChanged(QPointF newPos);
 
   protected:
 
@@ -42,6 +42,4 @@ class active_pt : public QGraphicsItem {
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed
     bool m_mouse_r_pressed{false}; // right button mouse is pressed
-
-    parent_type m_p_type;
 };

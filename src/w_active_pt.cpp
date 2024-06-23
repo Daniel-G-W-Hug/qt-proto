@@ -5,8 +5,8 @@
 
 static constexpr float RADIUS = 4;
 
-active_pt::active_pt(QPointF const& pos, parent_type parent_t, QGraphicsItem* parent) :
-    QGraphicsItem(parent), m_pos{pos}, m_p_type{parent_t}
+active_pt::active_pt(QPointF const& pos, QGraphicsItem* parent) :
+    QGraphicsItem(parent), m_pos{pos}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
              QGraphicsItem::ItemSendsGeometryChanges |
@@ -14,6 +14,8 @@ active_pt::active_pt(QPointF const& pos, parent_type parent_t, QGraphicsItem* pa
     setAcceptHoverEvents(true);
 
     setPos(pos.x(), pos.y()); // set item to scene coordinates
+    emit scenePosChanged(m_pos);
+    update();
 }
 
 void active_pt::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
@@ -58,41 +60,20 @@ QPainterPath active_pt::shape() const
 
 void active_pt::setScenePos(QPointF const& pos)
 {
-    prepareGeometryChange();
-    m_pos = pos;
+    // qDebug() << "active_pt::setScenePos called.";
+
+    if (m_pos != pos) {
+
+        // qDebug() << "active_pt::setScenePos changed.";
+
+        prepareGeometryChange();
+        m_pos = pos;
+        emit scenePosChanged(m_pos);
+        update();
+    }
 }
 
 QPointF active_pt::scenePos() { return m_pos; }
-
-void active_pt::update_parent_geometry()
-{
-
-    switch (m_p_type) {
-
-        case active_pt::parent_type::none: {
-            // do nothing
-            break;
-        }
-        case active_pt::parent_type::pt: {
-            // do noting
-            break;
-        }
-        case active_pt::parent_type::vec_beg: {
-            auto ptr_beg = dynamic_cast<active_vec*>(parentItem());
-            if (ptr_beg != nullptr) {
-                ptr_beg->setScenePos_beg(m_pos);
-            }
-            break;
-        }
-        case active_pt::parent_type::vec_end: {
-            auto ptr_end = dynamic_cast<active_vec*>(parentItem());
-            if (ptr_end != nullptr) {
-                ptr_end->setScenePos_end(m_pos);
-            }
-            break;
-        }
-    }
-}
 
 void active_pt::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
@@ -162,11 +143,6 @@ void active_pt::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         QPointF new_pos = event->scenePos() - event->pos();
         if (m_pos != new_pos) {
             setScenePos(new_pos);
-            // qDebug() << "new_pos:" << new_pos;
-            if (has_parent()) {
-                // qDebug() << "Updated parent.\n";
-                update_parent_geometry();
-            }
         }
         update();
     }

@@ -4,14 +4,16 @@ static constexpr float MARGIN = 12.0;
 static constexpr float ARROWSIZE = 12.0;
 
 active_vec::active_vec(QPointF const& beg, QPointF const& end, QGraphicsItem* parent) :
-    QGraphicsItem(parent), m_beg{beg}, m_end{end},
-    m_pt_beg{new active_pt(beg, active_pt::parent_type::vec_beg, this)},
-    m_pt_end{new active_pt(end, active_pt::parent_type::vec_end, this)}
+    QGraphicsItem(parent), m_beg{beg}, m_end{end}, m_pt_beg{new active_pt(beg, this)},
+    m_pt_end{new active_pt(end, this)}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
              QGraphicsItem::ItemSendsGeometryChanges |
              QGraphicsItem::ItemSendsScenePositionChanges);
     setAcceptHoverEvents(true);
+
+    connect(m_pt_beg, &active_pt::scenePosChanged, this, &active_vec::begScenePosChanged);
+    connect(m_pt_end, &active_pt::scenePosChanged, this, &active_vec::endScenePosChanged);
 }
 
 void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
@@ -114,17 +116,43 @@ QPainterPath active_vec::shape() const
 
 void active_vec::setScenePos_beg(QPointF const& pos)
 {
-    prepareGeometryChange();
-    m_beg = pos;
+    if (pos != m_beg) {
+        prepareGeometryChange();
+        m_beg = pos;
+        m_pt_beg->setScenePos(pos);
+    }
 }
 void active_vec::setScenePos_end(QPointF const& pos)
 {
-    prepareGeometryChange();
-    m_end = pos;
+    if (pos != m_end) {
+        prepareGeometryChange();
+        m_end = pos;
+        m_pt_end->setScenePos(pos);
+    }
 }
 
 QPointF active_vec::scenePos_beg() { return m_beg; }
 QPointF active_vec::scenePos_end() { return m_end; }
+
+
+void active_vec::begScenePosChanged(QPointF newPos)
+{
+    if (newPos != m_beg) {
+        prepareGeometryChange();
+        m_beg = newPos;
+        update();
+    }
+}
+
+void active_vec::endScenePosChanged(QPointF newPos)
+{
+    if (newPos != m_end) {
+        prepareGeometryChange();
+        m_end = newPos;
+        update();
+    }
+}
+
 
 void active_vec::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
@@ -200,8 +228,6 @@ void active_vec::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
             // update positions of vector and active points
             setScenePos_beg(scenePos_beg() + difference);
             setScenePos_end(scenePos_end() + difference);
-            m_pt_beg->setScenePos(scenePos_beg() + difference);
-            m_pt_end->setScenePos(scenePos_end() + difference);
         }
         update();
     }

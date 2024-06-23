@@ -5,14 +5,16 @@
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QPointF>
 #include <QWidget>
 
-class active_vec : public QGraphicsItem {
+class active_vec : public QObject, public QGraphicsItem {
+
+    Q_OBJECT
 
   public:
 
     active_vec(QPointF const& beg, QPointF const& end, QGraphicsItem* parent = nullptr);
-
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     [[nodiscard]] QRectF boundingRect() const override;
@@ -22,6 +24,10 @@ class active_vec : public QGraphicsItem {
     void setScenePos_end(QPointF const& pos);
     QPointF scenePos_beg();
     QPointF scenePos_end();
+
+  public slots:
+    void begScenePosChanged(QPointF newPos);
+    void endScenePosChanged(QPointF newPos);
 
   protected:
 
@@ -38,8 +44,8 @@ class active_vec : public QGraphicsItem {
     QPointF m_beg;
     QPointF m_end;
 
-    active_pt* m_pt_beg; // active_pt at starting position of the item (as scene position)
-    active_pt* m_pt_end; // active_pt at end position of the item (as scene position)
+    active_pt* m_pt_beg; // active_pt at beginning position
+    active_pt* m_pt_end; // active_pt at end position
 
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed
