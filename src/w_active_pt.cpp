@@ -1,30 +1,34 @@
+//
+// author: Daniel Hug, 2024
+//
+
 #include "w_active_pt.hpp"
-#include "w_active_vec.hpp"
+#include "w_active_common.hpp"
 
-#include <utility> // std::unreachable()
-
-static constexpr float RADIUS = 4;
-
-active_pt::active_pt(QPointF const& pos, QGraphicsItem* parent) :
-    QGraphicsItem(parent), m_pos{pos}
+active_pt::active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
+                     QGraphicsItem* parent) : QGraphicsItem(parent), cs{cs}, m_pos{pos}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
              QGraphicsItem::ItemSendsGeometryChanges |
              QGraphicsItem::ItemSendsScenePositionChanges);
     setAcceptHoverEvents(true);
 
-    setPos(pos.x(), pos.y()); // set item to scene coordinates
-    emit scenePosChanged(m_pos);
-    update();
+    connect(wcs, &w_Coordsys::viewResized, this, &active_pt::viewChanged);
+
+    setPos(cs->x.a_to_w(m_pos.x()),
+           cs->y.a_to_w(m_pos.y())); // set item to scene coordinates
+
+    // setZValue(10);
 }
 
 void active_pt::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
 
-    QColor const col_blue = QColor(0, 0, 255, 127);
-    QColor const col_green = QColor(0, 255, 0, 127);
-    QColor const col_red = QColor(255, 0, 0, 127);
+    // clipping area is active area of coordsys
+    painter->setClipRect(
+        mapRectFromScene(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
+                               cs->y.nmin() - cs->y.nmax())));
 
     // draw in item coordinate system
     painter->save();
@@ -68,29 +72,45 @@ void active_pt::setScenePos(QPointF const& pos)
 
         prepareGeometryChange();
         m_pos = pos;
-        emit scenePosChanged(m_pos);
-        update();
     }
 }
 
 QPointF active_pt::scenePos() { return m_pos; }
 
+
+void active_pt::viewChanged()
+{
+    // qDebug() << "active_pt: viewChanged() received.";
+
+    // view changed by external influence, set to m_pos
+    setPos(cs->x.a_to_w(m_pos.x()), cs->y.a_to_w(m_pos.y()));
+}
+
+void active_pt::posChanged()
+{
+    // qDebug() << "active_pt: posChanged() received.";
+
+    // position changed by external influence, update m_pos
+    QPointF npos = pos();
+    m_pos = QPointF(cs->x.w_to_a(npos.x()), cs->y.w_to_a(npos.y()));
+}
+
 void active_pt::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-    Q_UNUSED(event)
-
     // qDebug() << "active_pt::hoverEnterEvent.";
     m_mouse_hover = true;
+
     update();
+    QGraphicsItem::hoverEnterEvent(event);
 }
 
 void active_pt::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-    Q_UNUSED(event)
-
     // qDebug() << "active_pt::hoverLeaveEvent.";
     m_mouse_hover = false;
+
     update();
+    QGraphicsItem::hoverLeaveEvent(event);
 }
 
 void active_pt::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -105,9 +125,9 @@ void active_pt::mousePressEvent(QGraphicsSceneMouseEvent* event)
         // qDebug() << "active_pt: Qt::RightButton.";
         m_mouse_r_pressed = true;
     }
-    update();
 
-    QGraphicsItem::mousePressEvent(event); // call default implementation
+    update();
+    QGraphicsItem::mousePressEvent(event);
 }
 
 void active_pt::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -123,9 +143,9 @@ void active_pt::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         // qDebug() << "active_pt: Qt::RightButton.";
         m_mouse_r_pressed = false;
     }
-    update();
 
-    QGraphicsItem::mouseReleaseEvent(event); // call default implementation
+    update();
+    QGraphicsItem::mouseReleaseEvent(event);
 }
 
 void active_pt::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
@@ -134,18 +154,19 @@ void active_pt::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
     if (m_mouse_l_pressed) {
 
-        // qDebug() << "pos():" << event->pos();
-        // qDebug() << "scenePos():" << event->scenePos();
-        // qDebug() << "m_pos:" << m_pos;
+        QPointF delta = event->scenePos() - event->lastScenePos();
 
-        // update internally stored scene position of the item
-        // (corrected by gripping distance to the center pos)
-        QPointF new_pos = event->scenePos() - event->pos();
-        if (m_pos != new_pos) {
-            setScenePos(new_pos);
+        // qDebug() << "scenePos():" << event->scenePos();
+        // qDebug() << "lastScenePos():" << event->lastScenePos();
+        // qDebug() << "delta:" << delta;
+        // qDebug() << "pos():" << event->pos();
+
+        if (delta != QPointF(0, 0)) {
+            moveBy(delta.x(), delta.y());
+            posChanged();
         }
-        update();
     }
 
+    update();
     QGraphicsItem::mouseMoveEvent(event); // move the item normally
 }

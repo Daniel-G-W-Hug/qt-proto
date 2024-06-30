@@ -1,23 +1,38 @@
+//
+// author: Daniel Hug, 2024
+//
+
 #pragma once
 
+#include "coordsys.hpp"
 #include "w_active_pt.hpp"
+#include "w_coordsys.hpp"
 
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
+#include <QMarginsF>
 #include <QPainter>
 #include <QPointF>
+#include <QRectF>
 #include <QWidget>
+
+// active_vec has two active points. Can be manipulated and moved by mouse.
 
 class active_vec : public QObject, public QGraphicsItem {
 
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 
   public:
 
-    active_vec(QPointF const& beg, QPointF const& end, QGraphicsItem* parent = nullptr);
+    enum { Type = UserType + 2 };
+    int type() const override { return Type; }
+
+    active_vec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* end,
+               QGraphicsItem* parent = nullptr);
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
-    [[nodiscard]] QRectF boundingRect() const override;
+    QRectF boundingRect() const override;
     QPainterPath shape() const override;
 
     void setScenePos_beg(QPointF const& pos);
@@ -25,9 +40,7 @@ class active_vec : public QObject, public QGraphicsItem {
     QPointF scenePos_beg();
     QPointF scenePos_end();
 
-  public slots:
-    void begScenePosChanged(QPointF newPos);
-    void endScenePosChanged(QPointF newPos);
+    bool isHovered() { return m_mouse_hover; }
 
   protected:
 
@@ -41,11 +54,11 @@ class active_vec : public QObject, public QGraphicsItem {
 
   private:
 
-    QPointF m_beg;
-    QPointF m_end;
+    Coordsys* cs;
+    w_Coordsys* wcs;
 
-    active_pt* m_pt_beg; // active_pt at beginning position
-    active_pt* m_pt_end; // active_pt at end position
+    active_pt* m_beg; // active_pt at beginning position
+    active_pt* m_end; // active_pt at end position
 
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed

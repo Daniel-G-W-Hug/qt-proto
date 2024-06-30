@@ -32,7 +32,7 @@ cmake_minimum_required(VERSION 3.25)
 
 
 project(
-  qt-test
+  qt-cs
   VERSION 0.1
   LANGUAGES CXX)
 
@@ -70,7 +70,15 @@ if(CMAKE_BUILD_TYPE EQUAL "Debug")
 endif()
 
 # However, the file(GLOB...) allows for wildcard additions:
-set(SOURCES src/main.cpp src/mainwindow.cpp src/w_active_pt.cpp src/w_active_vec.cpp)
+set(SOURCES src/main.cpp
+            src/w_mainwindow.cpp
+            src/coordsys.cpp
+            src/w_coordsys.cpp
+            src/w_statusbar.cpp
+            src/w_active_common.cpp
+            src/w_active_pt.cpp
+            src/w_active_vec.cpp
+            src/w_active_bivec.cpp)
 
 set(EXEC_NAME ${PROJECT_NAME})
 add_executable(${EXEC_NAME} ${SOURCES} )

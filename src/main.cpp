@@ -1,4 +1,9 @@
-#include "mainwindow.hpp"
+
+//
+// author: Daniel Hug, 2024
+//
+
+#include "w_mainwindow.hpp"
 
 #include <QApplication>
 
@@ -10,7 +15,8 @@ int main(int argc, char* argv[])
 
     try {
         QApplication a(argc, argv);
-        MainWindow w;
+
+        w_MainWindow w;
         w.show();
         return a.exec();
     }

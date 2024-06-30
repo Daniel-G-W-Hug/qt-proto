@@ -1,37 +1,36 @@
+//
+// author: Daniel Hug, 2024
+//
+
 #include "w_active_vec.hpp"
+#include "w_active_common.hpp"
 
-static constexpr float MARGIN = 12.0;
-static constexpr float ARROWSIZE = 12.0;
-
-active_vec::active_vec(QPointF const& beg, QPointF const& end, QGraphicsItem* parent) :
-    QGraphicsItem(parent), m_beg{beg}, m_end{end}, m_pt_beg{new active_pt(beg, this)},
-    m_pt_end{new active_pt(end, this)}
+active_vec::active_vec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* end,
+                       QGraphicsItem* parent) :
+    QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_beg{beg}, m_end{end}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
              QGraphicsItem::ItemSendsGeometryChanges |
              QGraphicsItem::ItemSendsScenePositionChanges);
     setAcceptHoverEvents(true);
 
-    connect(m_pt_beg, &active_pt::scenePosChanged, this, &active_vec::begScenePosChanged);
-    connect(m_pt_end, &active_pt::scenePosChanged, this, &active_vec::endScenePosChanged);
+    // setZValue(18);
+
+    connect(wcs, &w_Coordsys::viewResized, m_beg, &active_pt::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_end, &active_pt::viewChanged);
 }
 
 void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                        QWidget* widget)
 {
 
-    QColor const col_blue = QColor(0, 0, 255, 127);
-    QColor const col_green = QColor(0, 255, 0, 127);
-    QColor const col_red = QColor(255, 0, 0, 127);
-    QColor const col_yel = QColor(255, 255, 0, 127);
+    // clipping area is active area of coordsys
+    painter->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
+                               cs->y.nmin() - cs->y.nmax()));
+
 
     // draw in item coordinate system
     painter->save();
-
-    // // draw bounding box (optional for testing)
-    // painter->setPen(col_yel);
-    // painter->setBrush(col_yel);
-    // painter->drawRect(boundingRect());
 
     painter->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
     painter->setBrush(Qt::black);
@@ -45,38 +44,25 @@ void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
         painter->setBrush(col_red);
     }
 
-    qreal dy = (m_end - m_beg).y();
-    qreal dx = (m_end - m_beg).x();
-    qreal angle = std::atan2(-dy, dx);
-
-    QPainterPath arrowLine;
-    arrowLine.moveTo(mapFromScene(m_beg));
-    arrowLine.lineTo(mapFromScene(m_end) -
-                     QPointF(sin(angle + M_PI / 2) * 0.6 * ARROWSIZE,
-                             cos(angle + M_PI / 2) * 0.6 * ARROWSIZE));
+    QPointF beg_pos =
+        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
+    QPointF end_pos =
+        QPointF(cs->x.a_to_w(m_end->scenePos().x()), cs->y.a_to_w(m_end->scenePos().y()));
 
     QPen pen = painter->pen();
     pen.setWidth(2);
-    painter->drawPath(arrowLine);
-
-    QPainterPath arrowHead;
-    arrowHead.moveTo(mapFromScene(m_end));
-    arrowHead.lineTo(mapFromScene(m_end) - QPointF(sin(angle + M_PI / 2.5) * ARROWSIZE,
-                                                   cos(angle + M_PI / 2.5) * ARROWSIZE));
-    arrowHead.lineTo(mapFromScene(m_end) -
-                     QPointF(sin(angle + M_PI / 2) * 0.7 * ARROWSIZE,
-                             cos(angle + M_PI / 2) * 0.7 * ARROWSIZE));
-    arrowHead.lineTo(mapFromScene(m_end) -
-                     QPointF(sin(angle + M_PI - M_PI / 2.5) * ARROWSIZE,
-                             cos(angle + M_PI - M_PI / 2.5) * ARROWSIZE));
-    arrowHead.closeSubpath();
+    painter->drawPath(arrowLine(beg_pos, end_pos));
 
     // from here on we want to draw with a small pen to get a pointy vector head
     pen.setWidth(1);
-    painter->setPen(pen);
-    painter->drawPath(arrowHead);
+    painter->drawPath(arrowHead(beg_pos, end_pos));
 
-    // // draw shape (optional for testing)
+    // draw bounding box (optional for testing)
+    // painter->setPen(col_yel);
+    // painter->setBrush(col_yel);
+    // painter->drawRect(boundingRect());
+
+    // draw shape (optional for testing)
     // painter->setPen(col_yel);
     // painter->setBrush(col_yel);
     // painter->drawPath(shape());
@@ -87,71 +73,42 @@ void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 QRectF active_vec::boundingRect() const
 {
     // give bounding box in item coordinate system
-    return QRectF(mapFromScene(m_beg), mapFromScene(m_end)).normalized();
+    QPointF beg_pos =
+        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
+    QPointF end_pos =
+        QPointF(cs->x.a_to_w(m_end->scenePos().x()), cs->y.a_to_w(m_end->scenePos().y()));
+    return QRectF(beg_pos, end_pos).normalized();
 }
 
 QPainterPath active_vec::shape() const
 {
 
-    qreal dy = (m_end - m_beg).y();
-    qreal dx = (m_end - m_beg).x();
-    qreal angle = std::atan2(-dy, dx);
+    QPointF beg_pos =
+        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
+    QPointF end_pos =
+        QPointF(cs->x.a_to_w(m_end->scenePos().x()), cs->y.a_to_w(m_end->scenePos().y()));
 
-    QPainterPath path;
-    path.moveTo(mapFromScene(m_beg) -
-                QPointF(sin(angle + M_PI / 2) * MARGIN, cos(angle + M_PI / 2) * MARGIN) -
-                QPointF(-cos(angle + M_PI / 2) * MARGIN, sin(angle + M_PI / 2) * MARGIN));
-    path.lineTo(mapFromScene(m_end) +
-                QPointF(sin(angle + M_PI / 2) * MARGIN, cos(angle + M_PI / 2) * MARGIN) -
-                QPointF(-cos(angle + M_PI / 2) * MARGIN, sin(angle + M_PI / 2) * MARGIN));
-    path.lineTo(mapFromScene(m_end) +
-                QPointF(sin(angle + M_PI / 2) * MARGIN, cos(angle + M_PI / 2) * MARGIN) +
-                QPointF(-cos(angle + M_PI / 2) * MARGIN, sin(angle + M_PI / 2) * MARGIN));
-    path.lineTo(mapFromScene(m_beg) -
-                QPointF(sin(angle + M_PI / 2) * MARGIN, cos(angle + M_PI / 2) * MARGIN) +
-                QPointF(-cos(angle + M_PI / 2) * MARGIN, sin(angle + M_PI / 2) * MARGIN));
-    path.closeSubpath();
-    return path;
+    return vectorShape(beg_pos, end_pos);
 }
 
 void active_vec::setScenePos_beg(QPointF const& pos)
 {
-    if (pos != m_beg) {
+    if (pos != m_beg->scenePos()) {
         prepareGeometryChange();
-        m_beg = pos;
-        m_pt_beg->setScenePos(pos);
+        m_beg->setScenePos(pos);
     }
 }
+
 void active_vec::setScenePos_end(QPointF const& pos)
 {
-    if (pos != m_end) {
+    if (pos != m_end->scenePos()) {
         prepareGeometryChange();
-        m_end = pos;
-        m_pt_end->setScenePos(pos);
+        m_end->setScenePos(pos);
     }
 }
 
-QPointF active_vec::scenePos_beg() { return m_beg; }
-QPointF active_vec::scenePos_end() { return m_end; }
-
-
-void active_vec::begScenePosChanged(QPointF newPos)
-{
-    if (newPos != m_beg) {
-        prepareGeometryChange();
-        m_beg = newPos;
-        update();
-    }
-}
-
-void active_vec::endScenePosChanged(QPointF newPos)
-{
-    if (newPos != m_end) {
-        prepareGeometryChange();
-        m_end = newPos;
-        update();
-    }
-}
+QPointF active_vec::scenePos_beg() { return m_beg->scenePos(); }
+QPointF active_vec::scenePos_end() { return m_end->scenePos(); }
 
 
 void active_vec::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -184,8 +141,8 @@ void active_vec::mousePressEvent(QGraphicsSceneMouseEvent* event)
         // qDebug() << "active_vec: Qt::RightButton.";
         m_mouse_r_pressed = true;
     }
-    update();
 
+    update();
     QGraphicsItem::mousePressEvent(event); // call default implementation
 }
 
@@ -204,8 +161,8 @@ void active_vec::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         // qDebug() << "active_pt: Qt::RightButton.";
         m_mouse_r_pressed = false;
     }
-    update();
 
+    update();
     QGraphicsItem::mouseReleaseEvent(event); // call default implementation
 }
 
@@ -215,22 +172,19 @@ void active_vec::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
     if (m_mouse_l_pressed) {
 
-        // qDebug() << "pos():" << event->pos();
-        // qDebug() << "scenePos():" << event->scenePos();
-        // qDebug() << "lastScenePos():" << event->lastScenePos();
-        // qDebug() << "scenePos_beg():" << scenePos_beg();
-        // qDebug() << "scenePos_end():" << scenePos_end();
+        QPointF delta = event->scenePos() - event->lastScenePos();
 
-        // update internally stored scene position of the item
-        QPointF difference = event->scenePos() - event->lastScenePos();
+        if (delta != QPointF(0, 0)) {
 
-        if (difference != QPointF(0, 0)) {
-            // update positions of vector and active points
-            setScenePos_beg(scenePos_beg() + difference);
-            setScenePos_end(scenePos_end() + difference);
+            // qDebug() << "scenePos():" << event->scenePos();
+            // qDebug() << "lastScenePos():" << event->lastScenePos();
+            // qDebug() << "delta:" << delta;
+
+            m_beg->moveBy(delta.x(), delta.y());
+            m_end->moveBy(delta.x(), delta.y());
+
+            m_beg->posChanged();
+            m_end->posChanged();
         }
-        update();
     }
-
-    QGraphicsItem::mouseMoveEvent(event); // move the item normally
 }
