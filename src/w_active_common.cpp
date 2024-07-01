@@ -24,9 +24,13 @@ qreal angle_of_line(QPointF const& beg_pos, QPointF const& end_pos)
 qreal angle_between_lines(QPointF const& beg_pos, QPointF const& end_upos,
                           QPointF const& end_vpos)
 {
-    // return relative angle between lines
-    // line are defined by beg_pos to end_upos (line 1) and
-    //                     beg_pos to end_vpos (line 2)
+    // Calculation of angle here is done in a right-handed system. If using device
+    // coordinates, i.e. a left-handed system, the angle requires a minus sign vs. the
+    // caclulation. However, the advantage is, that the calculation itself can be used for
+    // for right-handed systems using locical coordinates as input as well.
+    //
+    // Returns the relative angle between lines line are defined by beg_pos to
+    // end_upos (line 1) and by beg_pos to end_vpos (line 2)
 
     using std::numbers::pi;
 
@@ -131,7 +135,10 @@ QPainterPath anglePath(QPointF const& beg_pos, QPointF const& end_upos,
     QPointF tl = QPointF(beg_pos.x() - ARCRADIUS, beg_pos.y() - ARCRADIUS);
     QRectF br = QRectF(tl, QSizeF(2 * ARCRADIUS, 2 * ARCRADIUS));
 
+    // sign relative to x-axis (angle > 0 is counterclockwise vs. x-axis)
     qreal angle_u = angle_of_line(beg_pos, end_upos) * 180 / pi;
+    // sign has to be reversed here since device coordinates are in left-handed system.
+    // (calculation itself is done in classical right-handed system)
     qreal angle_sweep = -angle_between_lines(beg_pos, end_upos, end_vpos) * 180 / pi;
     qreal angle_delta = ARCDELTA * (angle_sweep / 180); // scale to 0 for small angles
 

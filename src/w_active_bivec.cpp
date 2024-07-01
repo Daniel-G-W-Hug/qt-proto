@@ -48,8 +48,15 @@ void active_bivec::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
 
     polygon << beg_pos << end_upos << tip_pos << end_vpos << beg_pos;
 
-    qreal angle_rel =
-        angle_between_lines(m_beg->scenePos(), m_uend->scenePos(), m_vend->scenePos());
+    // The sign has to be reversed here, since device coordinates are in a left-handed
+    // system. The angle calculation itself is done in a classical right-handed system.
+    //
+    // Be aware: Depending on aspect ratio of x- vs. y-axis calculated angles will change,
+    // if calculated from device coordinate input. However, they are visually consistent.
+    //
+    // Actual angle calculations for mathematical/physical purposes must use logical
+    // coordinates as input for the calculation exclusively!
+    qreal angle_rel = -angle_between_lines(beg_pos, end_upos, end_vpos);
     // qDebug() << "active_bivec::paint: angle_rel = " << angle_rel;
 
     if (angle_rel >= 0.0) {

@@ -73,6 +73,7 @@ endif()
 set(SOURCES src/main.cpp
             src/w_mainwindow.cpp
             src/coordsys.cpp
+            src/w_common.cpp
             src/w_coordsys.cpp
             src/w_statusbar.cpp
             src/w_active_common.cpp

@@ -3,10 +3,6 @@
 //
 
 #include "w_coordsys.hpp"
-#include "w_active_bivec.hpp"
-#include "w_active_pt.hpp"
-#include "w_active_vec.hpp"
-#include "w_statusbar.hpp"
 
 
 #include <QCursor>
@@ -164,16 +160,7 @@ void w_Coordsys::mousePressEvent(QMouseEvent* event)
     // accept mouse presses only in hot area
     if (m_hot) {
 
-        bool anyHover{false};
-        foreach (QGraphicsItem* item, items()) {
-            if (item->type() == active_pt::Type)
-                anyHover = anyHover || qgraphicsitem_cast<active_pt*>(item)->isHovered();
-            if (item->type() == active_vec::Type)
-                anyHover = anyHover || qgraphicsitem_cast<active_vec*>(item)->isHovered();
-            if (item->type() == active_bivec::Type)
-                anyHover =
-                    anyHover || qgraphicsitem_cast<active_bivec*>(item)->isHovered();
-        }
+        bool anyHover = anyHovered(items());
 
         if (event->button() == Qt::LeftButton && !anyHover) {
             // fmt::print("w_Coordsys::mousePressEvent() left button (zoom)\n");

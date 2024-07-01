@@ -15,7 +15,7 @@ static constexpr float RADIUS = 6.0;     // active_pt radius in pixels
 static constexpr float MARGIN = 4.0;     // margin for shape of vector
 static constexpr float ARROWSIZE = 12.0; // arrow size of vector
 
-static constexpr float ARCRADIUS = 50.0; // radius of arc to show direction of bivector
+static constexpr float ARCRADIUS = 45.0; // radius of arc to show direction of bivector
 static constexpr float ARCMARK = 3.0;    // radius of arc mark to show turning direction
 static constexpr float ARCDELTA = 22.0;  // max. delta angle of arc mark (begin & end)
 

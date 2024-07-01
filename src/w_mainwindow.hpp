@@ -9,7 +9,6 @@
 #include "w_statusbar.hpp"
 
 #include <QGraphicsScene>
-#include <QGraphicsView>
 #include <QMainWindow>
 #include <QWidget>
 
