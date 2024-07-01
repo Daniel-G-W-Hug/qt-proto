@@ -2,8 +2,8 @@
 // author: Daniel Hug, 2024
 //
 
-#include "w_active_vec.hpp"
-#include "w_active_common.hpp"
+#include "active_common.hpp"
+#include "active_vec.hpp"
 
 active_vec::active_vec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* end,
                        QGraphicsItem* parent) :

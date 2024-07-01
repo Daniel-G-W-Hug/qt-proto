@@ -2,7 +2,7 @@
 // author: Daniel Hug, 2024
 //
 
-#include "w_active_common.hpp"
+#include "active_common.hpp"
 
 #include <cmath>
 #include <numbers>

@@ -76,10 +76,10 @@ set(SOURCES src/main.cpp
             src/w_common.cpp
             src/w_coordsys.cpp
             src/w_statusbar.cpp
-            src/w_active_common.cpp
-            src/w_active_pt.cpp
-            src/w_active_vec.cpp
-            src/w_active_bivec.cpp)
+            src/active_common.cpp
+            src/active_pt.cpp
+            src/active_vec.cpp
+            src/active_bivec.cpp)
 
 set(EXEC_NAME ${PROJECT_NAME})
 add_executable(${EXEC_NAME} ${SOURCES} )

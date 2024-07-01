@@ -3,9 +3,9 @@
 //
 
 #include "w_mainwindow.hpp"
-#include "w_active_bivec.hpp"
-#include "w_active_pt.hpp"
-#include "w_active_vec.hpp"
+#include "active_bivec.hpp"
+#include "active_pt.hpp"
+#include "active_vec.hpp"
 #include "w_coordsys.hpp"
 #include "w_statusbar.hpp"
 

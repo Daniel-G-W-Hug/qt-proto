@@ -1,8 +1,8 @@
 #include "w_common.hpp"
 
-#include "w_active_bivec.hpp"
-#include "w_active_pt.hpp"
-#include "w_active_vec.hpp"
+#include "active_bivec.hpp"
+#include "active_pt.hpp"
+#include "active_vec.hpp"
 
 bool anyHovered(QList<QGraphicsItem*> const& items)
 {

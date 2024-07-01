@@ -2,8 +2,8 @@
 // author: Daniel Hug, 2024
 //
 
-#include "w_active_bivec.hpp"
-#include "w_active_common.hpp"
+#include "active_bivec.hpp"
+#include "active_common.hpp"
 
 
 active_bivec::active_bivec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* uend,

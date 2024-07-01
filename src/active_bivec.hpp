@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "active_pt.hpp"
 #include "coordsys.hpp"
-#include "w_active_pt.hpp"
 #include "w_coordsys.hpp"
 
 #include <QGraphicsItem>

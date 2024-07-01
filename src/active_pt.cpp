@@ -2,8 +2,8 @@
 // author: Daniel Hug, 2024
 //
 
-#include "w_active_pt.hpp"
-#include "w_active_common.hpp"
+#include "active_common.hpp"
+#include "active_pt.hpp"
 
 active_pt::active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
                      QGraphicsItem* parent) : QGraphicsItem(parent), cs{cs}, m_pos{pos}
