@@ -127,13 +127,17 @@ QRectF active_bivec::boundingRect() const
     // give bounding box in item coordinate system
     QPointF beg_pos =
         QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
-    QPointF uend_pos = QPointF(cs->x.a_to_w(m_uend->scenePos().x()),
+    QPointF end_upos = QPointF(cs->x.a_to_w(m_uend->scenePos().x()),
                                cs->y.a_to_w(m_uend->scenePos().y()));
-    QPointF vend_pos = QPointF(cs->x.a_to_w(m_vend->scenePos().x()),
+    QPointF end_vpos = QPointF(cs->x.a_to_w(m_vend->scenePos().x()),
                                cs->y.a_to_w(m_vend->scenePos().y()));
 
+    QPointF tip_pos = end_upos + end_vpos - beg_pos;
+
+    // parallelogram corresponding to u^v
     QPolygonF polygon;
-    polygon << beg_pos << uend_pos << vend_pos;
+
+    polygon << beg_pos << end_upos << tip_pos << end_vpos << beg_pos;
 
     return polygon.boundingRect();
 }
