@@ -11,7 +11,7 @@
 
 // common operations used by several active items
 
-static constexpr float RADIUS = 6.0;     // active_pt radius in pixels
+static constexpr float RADIUS = 7.0;     // active_pt radius in pixels
 static constexpr float MARGIN = 4.0;     // margin for shape of vector
 static constexpr float ARROWSIZE = 12.0; // arrow size of vector
 

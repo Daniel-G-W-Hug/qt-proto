@@ -4,6 +4,7 @@
 
 #include "w_mainwindow.hpp"
 #include "active_bivec.hpp"
+#include "active_projection.hpp"
 #include "active_pt.hpp"
 #include "active_vec.hpp"
 #include "w_coordsys.hpp"
@@ -17,10 +18,10 @@ Coordsys* get_initial_cs()
 {
     // TODO: read default parameters from config file (e.g. .lua)
 
-    axis_data ax(axis_rng(-1.3, 1.3), axis_dir::x, axis_scal::linear, "x label",
+    axis_data ax(axis_rng(-2.3, 4.3), axis_dir::x, axis_scal::linear, "x label",
                  axis_ticks(0.0, 0.5, 5));
 
-    axis_data ay(axis_rng(-1.2, 1.2), axis_dir::y, axis_scal::linear, "y label",
+    axis_data ay(axis_rng(-2.2, 3.2), axis_dir::y, axis_scal::linear, "y label",
                  axis_ticks(0.0, 0.5, 5));
 
     widget_axis_data wx(600, 60, 520);
@@ -38,15 +39,16 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, QGraphicsScene* scene)
 {
     // active_pt* pt = new active_pt(QPointF(120, 100));
     // active_pt* pt = new active_pt(QPointF(0, 0.8));
-    active_pt* pt0 = new active_pt(cs, wcs, QPointF(0.0, 0.0));
+    active_pt* pt0 = new active_pt(cs, wcs, QPointF(0.0, 1));
     scene->addItem(pt0);
 
     // scene->addLine(0, 0, 120, 100);
 
-    active_pt* pt1 = new active_pt(cs, wcs, QPointF(1, 0));
-    active_pt* pt2 = new active_pt(cs, wcs, QPointF(0, 1));
+    active_pt* pt1 = new active_pt(cs, wcs, QPointF(3, 1));
     scene->addItem(pt1);
-    scene->addItem(pt2);
+
+    // active_pt* pt2 = new active_pt(cs, wcs, QPointF(0, 1));
+    // scene->addItem(pt2);
 
     // active_vec* v0 = new active_vec(cs, wcs, pt0, pt1);
     // scene->addItem(v0);
@@ -55,8 +57,14 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, QGraphicsScene* scene)
     // active_vec* v1 = new active_vec(cs, wcs, pt1, pt2);
     // scene->addItem(v1);
 
-    active_bivec* bv1 = new active_bivec(cs, wcs, pt0, pt1, pt2);
-    scene->addItem(bv1);
+    // active_bivec* bv1 = new active_bivec(cs, wcs, pt0, pt1, pt2);
+    // scene->addItem(bv1);
+
+    active_pt* pt3 = new active_pt(cs, wcs, QPointF(2, 2));
+    scene->addItem(pt3);
+
+    active_projection* proj1 = new active_projection(cs, wcs, pt0, pt1, pt3);
+    scene->addItem(proj1);
 }
 
 
