@@ -19,7 +19,8 @@
 #include "fmt/format.h"
 #include "fmt/ranges.h"
 
-Axis::Axis(widget_axis_data wd_in, axis_data ad_in) : wd{wd_in}, ad{ad_in}
+Axis::Axis(widget_axis_data wd_in, axis_data ad_in, std::optional<double> px_density_in) :
+    wd{wd_in}, ad{ad_in}, target_px_density_rng{px_density_in}
 {
 
     // fmt::print("called ctor for axis\n");
@@ -36,6 +37,26 @@ Axis::Axis(widget_axis_data wd_in, axis_data ad_in) : wd{wd_in}, ad{ad_in}
         throw std::runtime_error("Axis length must be a positive value.");
 
     label = ad.label.c_str();
+
+    if (target_px_density_rng.has_value()) {
+
+        // qDebug() << "px_density_rng(): " << px_density_rng();
+        // qDebug() << "old: ad.rng.min:  " << ad.rng.min;
+        // qDebug() << "old: ad.rng.max:  " << ad.rng.max;
+
+        // adjust rng, such that target_px_density_rng will be reached
+        double old_max = ad.rng.max;
+
+        ad.rng.max = ad.rng.min + wd.a_length / target_px_density_rng.value();
+
+        double delta = 0.5 * (old_max - ad.rng.max);
+
+        ad.rng.min += delta;
+        ad.rng.max += delta;
+
+        // qDebug() << "new: ad.rng.min: " << ad.rng.min;
+        // qDebug() << "new: ad.rng.max: " << ad.rng.max;
+    }
 
     switch (ad.dir) {
         case axis_dir::x: {
@@ -352,8 +373,9 @@ std::vector<double> Axis::get_minor_pos(const std::vector<double>& major_pos) co
     return notches;
 } // get_minor_pos()
 
-Coordsys::Coordsys(Axis x_in, Axis y_in, coordsys_data cd_in) :
-    x{x_in}, y{y_in}, cd{cd_in}, title{cd.title.c_str()}
+Coordsys::Coordsys(Axis x_in, Axis y_in, coordsys_data cd_in,
+                   keep_aspect_ratio ar_const_in) :
+    x{x_in}, y{y_in}, cd{cd_in}, title{cd.title.c_str()}, ar_const{ar_const_in}
 {
     // store target ratios once per Coordsys in order to allow for
     // scrollwheel scaling based on inital ratios set by user as target values
@@ -424,27 +446,29 @@ void Coordsys::adjust_to_resized_widget(int new_w_width, int new_w_height)
 {
 
     // needs adjustment of axis if corresponding widget size has changed
-    if (new_w_width != x.widget_size()) {
 
-        widget_axis_data wdx = x.get_widget_axis_data();
-        axis_data adx = x.get_axis_data();
+    // get current x-axis
+    widget_axis_data wdx = x.get_widget_axis_data();
+    axis_data adx = x.get_axis_data();
 
-        // set new width and create new axis
-        int delta_x = new_w_width - x.widget_size();
-        wdx.w_size = new_w_width;
-        wdx.a_length += delta_x;
-        x = Axis(wdx, adx);
+    // set new width and create new x-axis
+    int delta_x = new_w_width - x.widget_size();
+    wdx.w_size = new_w_width;
+    wdx.a_length += delta_x;
+    x = Axis(wdx, adx);
+
+    // get current y-axis
+    widget_axis_data wdy = y.get_widget_axis_data();
+    axis_data ady = y.get_axis_data();
+
+    // set new width and create new y-axis
+    int delta_y = new_w_height - y.widget_size();
+    wdy.w_size = new_w_height;
+    wdy.a_length += delta_y;
+    if (ar_const == keep_aspect_ratio::yes) {
+        y = Axis(wdy, ady, x.px_density_rng());
     }
-
-    if (new_w_height != y.widget_size()) {
-
-        widget_axis_data wdy = y.get_widget_axis_data();
-        axis_data ady = y.get_axis_data();
-
-        // set new width and create new axis
-        int delta_y = new_w_height - y.widget_size();
-        wdy.w_size = new_w_height;
-        wdy.a_length += delta_y;
+    else {
         y = Axis(wdy, ady);
     }
 }
@@ -478,35 +502,31 @@ void Coordsys::adjust_to_pan(double dx, double dy)
 void Coordsys::adjust_to_zoom(double new_xmin, double new_xmax, double new_ymin,
                               double new_ymax)
 {
-
     // get data of existing axis
     widget_axis_data wdx = x.get_widget_axis_data();
     axis_data adx = x.get_axis_data();
 
-    if (adx.rng.min != new_xmin || adx.rng.max != new_xmax) {
-        // if there is some change
-        // set new delta, as well as new min and new max
-        adx.ticks.major_delta = get_new_delta(adx.rng.min, adx.rng.max,
-                                              adx.ticks.major_delta, new_xmin, new_xmax);
-        adx.rng.min = new_xmin;
-        adx.rng.max = new_xmax;
+    adx.ticks.major_delta = get_new_delta(adx.rng.min, adx.rng.max, adx.ticks.major_delta,
+                                          new_xmin, new_xmax);
+    adx.rng.min = new_xmin;
+    adx.rng.max = new_xmax;
 
-        // create new axis
-        x = Axis(wdx, adx);
-    }
+    // create new axis
+    x = Axis(wdx, adx);
 
     widget_axis_data wdy = y.get_widget_axis_data();
     axis_data ady = y.get_axis_data();
 
-    if (ady.rng.min != new_ymin || ady.rng.max != new_ymax) {
-        // if there is some change
-        // set new delta, as well as new min and new max
-        ady.ticks.major_delta = get_new_delta(ady.rng.min, ady.rng.max,
-                                              ady.ticks.major_delta, new_ymin, new_ymax);
-        ady.rng.min = new_ymin;
-        ady.rng.max = new_ymax;
+    ady.ticks.major_delta = get_new_delta(ady.rng.min, ady.rng.max, ady.ticks.major_delta,
+                                          new_ymin, new_ymax);
+    ady.rng.min = new_ymin;
+    ady.rng.max = new_ymax;
 
-        // create new axis
+    // create new axis
+    if (ar_const == keep_aspect_ratio::yes) {
+        y = Axis(wdy, ady, x.px_density_rng());
+    }
+    else {
         y = Axis(wdy, ady);
     }
 }

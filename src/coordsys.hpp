@@ -8,6 +8,7 @@
 #include <QString>
 #include <QWidget>
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,11 @@ struct mouse_pos_t // mouse position in various systems
     int nx, ny;  // pos in device coordinate system
     double x, y; // pos in coordinate system
 };
+
+// aspect ratio either not prescribed (default) or set to yes
+// in the later case x-axis values are user defined and y-axis range is calculated (user
+// provided y-range mid point will be used as target mid point for calculation)
+enum class keep_aspect_ratio { no, yes };
 
 struct axis_rng // range covered by axis from min to max
 {
@@ -122,7 +128,8 @@ class Axis // defines axis and scaling transformation to paint device
 {
   public:
 
-    Axis(widget_axis_data wd_in, axis_data ad_in);
+    Axis(widget_axis_data wd_in, axis_data ad_in,
+         std::optional<double> px_density_in = std::nullopt);
 
     int a_to_w(double scaled_value) const;    // (scaled) axis to widget transformation
     int au_to_w(double unscaled_value) const; // unscaled axis to widget transformation
@@ -137,6 +144,11 @@ class Axis // defines axis and scaling transformation to paint device
     int nmin() const { return a_to_w(ad.rng.min); }
     int nmax() const { return a_to_w(ad.rng.max); }
     int widget_size() const { return wd.w_size; }
+    double px_density_rng() const
+    {
+        return (ad.dir == axis_dir::x) ? (nmax() - nmin()) / (max() - min())
+                                       : (nmin() - nmax()) / (max() - min());
+    }
     axis_scal scaling() const { return ad.scal; }
     widget_axis_data get_widget_axis_data() const { return wd; }
     axis_data get_axis_data() const { return ad; }
@@ -156,6 +168,8 @@ class Axis // defines axis and scaling transformation to paint device
     int mo;    // min offset position on paint device
     double sf; // scaling factor to map axis length and scaling direction to
                // length and direction on paint device
+
+    std::optional<double> target_px_density_rng; // pixels per delta
 };
 
 struct coordsys_data {
@@ -176,7 +190,8 @@ struct coordsys_data {
 class Coordsys {
   public:
 
-    Coordsys(Axis x_in, Axis y_in, coordsys_data cd_in);
+    Coordsys(Axis x_in, Axis y_in, coordsys_data cd_in,
+             keep_aspect_ratio ar_const_in = keep_aspect_ratio::no);
     void draw(QPainter* qp);
 
     coordsys_data get_coordsys_data() const { return cd; }
@@ -204,6 +219,8 @@ class Coordsys {
   private:
 
     coordsys_data cd;
+
+    keep_aspect_ratio ar_const;
 
     // title as qt-String
     QString title;

@@ -18,19 +18,20 @@ Coordsys* get_initial_cs()
 {
     // TODO: read default parameters from config file (e.g. .lua)
 
-    axis_data ax(axis_rng(-2.3, 4.3), axis_dir::x, axis_scal::linear, "x label",
+    axis_data ax(axis_rng(-0.5, 3.5), axis_dir::x, axis_scal::linear, "x label",
                  axis_ticks(0.0, 0.5, 5));
 
-    axis_data ay(axis_rng(-2.2, 3.2), axis_dir::y, axis_scal::linear, "y label",
+    axis_data ay(axis_rng(-0.5, 2.5), axis_dir::y, axis_scal::linear, "y label",
                  axis_ticks(0.0, 0.5, 5));
 
-    widget_axis_data wx(600, 60, 520);
-    widget_axis_data wy(400, 50, 320);
+    widget_axis_data wx(600, 65, 520);
+    widget_axis_data wy(500, 50, 420);
 
     Axis x(wx, ax);
-    Axis y(wy, ay);
+    Axis y(wy, ay, x.px_density_rng()); // enable aspect_ratio = 1.0
+
     coordsys_data cd("Coordsys Title");
-    Coordsys* cs = new Coordsys(x, y, cd);
+    Coordsys* cs = new Coordsys(x, y, cd, keep_aspect_ratio::yes);
 
     return cs;
 }
