@@ -37,10 +37,13 @@ class active_vec : public QObject, public QGraphicsItem {
 
     void setScenePos_beg(QPointF const& pos);
     void setScenePos_end(QPointF const& pos);
-    QPointF scenePos_beg();
-    QPointF scenePos_end();
+    QPointF scenePos_beg() const;
+    QPointF scenePos_end() const;
 
     bool isHovered() { return m_mouse_hover; }
+
+  signals:
+    void viewMoved();
 
   protected:
 

@@ -2,8 +2,8 @@
 // author: Daniel Hug, 2024
 //
 
-#include "active_common.hpp"
 #include "active_vec.hpp"
+#include "active_common.hpp"
 
 active_vec::active_vec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* end,
                        QGraphicsItem* parent) :
@@ -18,6 +18,9 @@ active_vec::active_vec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt*
 
     connect(wcs, &w_Coordsys::viewResized, m_beg, &active_pt::viewChanged);
     connect(wcs, &w_Coordsys::viewResized, m_end, &active_pt::viewChanged);
+
+    connect(this, &active_vec::viewMoved, m_beg, &active_pt::posChanged);
+    connect(this, &active_vec::viewMoved, m_end, &active_pt::posChanged);
 }
 
 void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
@@ -45,9 +48,9 @@ void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
     }
 
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
+        QPointF(cs->x.a_to_w(scenePos_beg().x()), cs->y.a_to_w(scenePos_beg().y()));
     QPointF end_pos =
-        QPointF(cs->x.a_to_w(m_end->scenePos().x()), cs->y.a_to_w(m_end->scenePos().y()));
+        QPointF(cs->x.a_to_w(scenePos_end().x()), cs->y.a_to_w(scenePos_end().y()));
 
     QPen pen = painter->pen();
     pen.setWidth(2);
@@ -74,20 +77,18 @@ QRectF active_vec::boundingRect() const
 {
     // give bounding box in item coordinate system
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
+        QPointF(cs->x.a_to_w(scenePos_beg().x()), cs->y.a_to_w(scenePos_beg().y()));
     QPointF end_pos =
-        QPointF(cs->x.a_to_w(m_end->scenePos().x()), cs->y.a_to_w(m_end->scenePos().y()));
+        QPointF(cs->x.a_to_w(scenePos_end().x()), cs->y.a_to_w(scenePos_end().y()));
     return QRectF(beg_pos, end_pos).normalized();
 }
 
 QPainterPath active_vec::shape() const
 {
-
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
+        QPointF(cs->x.a_to_w(scenePos_beg().x()), cs->y.a_to_w(scenePos_beg().y()));
     QPointF end_pos =
-        QPointF(cs->x.a_to_w(m_end->scenePos().x()), cs->y.a_to_w(m_end->scenePos().y()));
-
+        QPointF(cs->x.a_to_w(scenePos_end().x()), cs->y.a_to_w(scenePos_end().y()));
     return vectorShape(beg_pos, end_pos);
 }
 
@@ -107,8 +108,8 @@ void active_vec::setScenePos_end(QPointF const& pos)
     }
 }
 
-QPointF active_vec::scenePos_beg() { return m_beg->scenePos(); }
-QPointF active_vec::scenePos_end() { return m_end->scenePos(); }
+QPointF active_vec::scenePos_beg() const { return m_beg->scenePos(); }
+QPointF active_vec::scenePos_end() const { return m_end->scenePos(); }
 
 
 void active_vec::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -183,8 +184,7 @@ void active_vec::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
             m_beg->moveBy(delta.x(), delta.y());
             m_end->moveBy(delta.x(), delta.y());
 
-            m_beg->posChanged();
-            m_end->posChanged();
+            emit viewMoved();
         }
     }
 }
