@@ -1,8 +1,7 @@
+#pragma once
 //
 // author: Daniel Hug, 2024
 //
-
-#pragma once
 
 #include "coordsys.hpp"
 #include "w_common.hpp"

@@ -1,8 +1,7 @@
+#pragma once
 //
 // author: Daniel Hug, 2024
 //
-
-#pragma once
 
 #include <QColor>
 #include <QDebug>
