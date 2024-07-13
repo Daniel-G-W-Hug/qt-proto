@@ -152,3 +152,19 @@ QPainterPath anglePath(QPointF const& beg_pos, QPointF const& end_upos,
     path.addEllipse(path.currentPosition(), ARCMARK, ARCMARK);
     return path;
 }
+
+QPainterPath planeLine(QPointF const& beg_pos, QPointF const& end_pos, qreal max_size)
+{
+    // return line normal to vector between beg_pos and end_pos
+
+    using std::numbers::pi;
+
+    qreal angle = angle_of_line(beg_pos, end_pos) - pi / 2;
+
+    // qDebug() << "planeLine: angle = " << angle;
+
+    QPainterPath path;
+    path.moveTo(beg_pos + QPointF(cos(angle) * max_size, -sin(angle) * max_size));
+    path.lineTo(beg_pos - QPointF(cos(angle) * max_size, -sin(angle) * max_size));
+    return path;
+}

@@ -33,3 +33,4 @@ QPainterPath arrowHead(QPointF const& beg_pos, QPointF const& end_pos);
 QPainterPath vectorShape(QPointF const& beg_pos, QPointF const& end_pos);
 QPainterPath anglePath(QPointF const& beg_pos, QPointF const& end_upos,
                        QPointF const& end_vpos);
+QPainterPath planeLine(QPointF const& beg_pos, QPointF const& end_pos, qreal max_size);

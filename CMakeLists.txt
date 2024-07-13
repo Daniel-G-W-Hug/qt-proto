@@ -80,7 +80,8 @@ set(SOURCES src/main.cpp
             src/active_pt.cpp
             src/active_vec.cpp
             src/active_bivec.cpp
-            src/active_projection.cpp)
+            src/active_projection.cpp
+            src/active_plane.cpp)
 
 set(EXEC_NAME ${PROJECT_NAME})
 add_executable(${EXEC_NAME} ${SOURCES} )
